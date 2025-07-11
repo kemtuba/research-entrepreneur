@@ -1,38 +1,43 @@
-'use client'
+// app/page.jsx
+'use client';
 
-import { Suspense } from 'react'
-import { Canvas } from '@react-three/fiber'
-import { OrbitControls, PerspectiveCamera } from '@react-three/drei'
-import Archipelago from '@/components/canvas/Archipelago'
+import { Canvas } from '@react-three/fiber';
+import { Suspense, useState } from 'react';
+import Archipelago from '@/components/canvas/Archipelago';
+import InfoPanel from '@/components/dom/InfoPanel';
+import { frameworkData, stageData } from '@/components/canvas/frameworkData';
 
-// This is the main 3D scene setup for your page
-function Scene() {
-  return (
-    <Canvas>
-      <Suspense fallback={null}>
-        {/* Camera and Controls */}
-        <PerspectiveCamera makeDefault position={[-25, 15, 25]} fov={75} />
-        <OrbitControls />
-
-        {/* Lighting */}
-        <ambientLight intensity={0.5} />
-        <directionalLight position={[10, 10, 5]} intensity={1} />
-
-        {/* Custom components */}
-        <Archipelago />
-
-        {/* Environment */}
-        <fog attach="fog" args={['#1d2228', 30, 120]} />
-      </Suspense>
-    </Canvas>
-  )
-}
-
-// The default export for the page, which renders the scene
 export default function Page() {
+  const [activeWedge, setActiveWedge] = useState(null);
+
+  // Helper to get all data for the active wedge
+  let activeWedgeData = null;
+  if (activeWedge) {
+    const letter = activeWedge.charAt(0);
+    const stage = activeWedge.charAt(1);
+    const behaviorData = frameworkData.find((b) => b.id === letter);
+    if (behaviorData) {
+      activeWedgeData = {
+        ...behaviorData,
+        coordinate: activeWedge,
+        stage: stage,
+        stageName: stageData[stage].name,
+      };
+    }
+  }
+
   return (
-    <div style={{ width: '100vw', height: '100vh' }}>
-      <Scene />
+    <div style={{ width: '100vw', height: '100vh', background: '#FFFDD0' }}>
+      <InfoPanel activeWedgeData={activeWedgeData} />
+
+      <Canvas>
+        <Suspense fallback={null}>
+          <Archipelago
+            activeWedge={activeWedge}
+            setActiveWedge={setActiveWedge}
+          />
+        </Suspense>
+      </Canvas>
     </div>
-  )
+  );
 }
